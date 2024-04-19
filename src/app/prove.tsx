@@ -3,7 +3,7 @@ import { useState } from "react";
 import { CircuitSignals } from "snarkjs";
 import Inputs from "./inputs.json";
 
-const url = "https://mopro.vivianjeng.xyz";
+const url = "https://ci-keys.zkmopro.org";
 
 async function getKeys(circuit: string) {
     const wasmUrl = new URL(`${circuit}.wasm`, url).toString();
