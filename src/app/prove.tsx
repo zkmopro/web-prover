@@ -17,14 +17,26 @@ async function fullProve(circuit: string, inputs: CircuitSignals) {
     const _snarkjs = import("snarkjs");
     const snarkjs = await _snarkjs;
     const { wasm, zkey } = await getKeys(circuit);
-    const start = +Date.now();
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-        inputs,
-        new Uint8Array(wasm),
-        new Uint8Array(zkey)
+    const wtns = {
+        type: "mem",
+    };
+
+    const witStart = +Date.now();
+    await snarkjs.wtns.calculate(inputs, new Uint8Array(wasm), wtns);
+    const witEnd = +Date.now();
+
+    const proveStart = +Date.now();
+    const { proof, publicSignals } = await snarkjs.groth16.prove(
+        new Uint8Array(zkey),
+        wtns as any
     );
-    const end = +Date.now();
-    return { proof, publicSignals, provingTime: end - start };
+    const proveEnd = +Date.now();
+    return {
+        proof,
+        publicSignals,
+        witGenTime: witEnd - witStart,
+        provingTime: proveEnd - proveStart,
+    };
 }
 
 // async function verifyProof(
@@ -49,6 +61,7 @@ async function fullProve(circuit: string, inputs: CircuitSignals) {
 
 export default function Prove(props: any) {
     const [proving, setProving] = useState<boolean>(false);
+    const [witGenTime, setWitGenTime] = useState<string>("");
     const [provingTime, setProvingTime] = useState<string>("");
     const [proof, setProof] = useState<string>();
     const [publicSignals, setPublicSignals] = useState<string>("");
@@ -57,10 +70,11 @@ export default function Prove(props: any) {
     async function generateProof() {
         setProving(true);
         setProvingTime("Calculating...");
-        const { proof, publicSignals, provingTime } = await fullProve(
+        const { proof, publicSignals, witGenTime, provingTime } = await fullProve(
             file,
             inputs
         );
+        setWitGenTime(`${witGenTime / 1000} s`);
         setProvingTime(`${provingTime / 1000} s`);
         setProof(JSON.stringify(proof));
         setPublicSignals(JSON.stringify(publicSignals));
@@ -79,6 +93,9 @@ export default function Prove(props: any) {
                     Prove
                 </button>
                 {/* <button className="btn">Verify</button> */}
+                {witGenTime && (
+                    <p className="mt-2">Witness Generation time: {witGenTime}</p>
+                )}
                 {provingTime && (
                     <p className="mt-2">Proving time: {provingTime}</p>
                 )}
