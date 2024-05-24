@@ -65,15 +65,18 @@ export default function Prove(props: any) {
     const [provingTime, setProvingTime] = useState<string>("");
     const [proof, setProof] = useState<string>();
     const [publicSignals, setPublicSignals] = useState<string>("");
+    const [output, setOutput] = useState<boolean>(false);
     const { file, inputs } = Inputs[props.circuit as keyof typeof Inputs];
+
+    function toggle() {
+        setOutput(!output);
+    }
 
     async function generateProof() {
         setProving(true);
         setProvingTime("Calculating...");
-        const { proof, publicSignals, witGenTime, provingTime } = await fullProve(
-            file,
-            inputs
-        );
+        const { proof, publicSignals, witGenTime, provingTime } =
+            await fullProve(file, inputs);
         setWitGenTime(`${witGenTime / 1000} s`);
         setProvingTime(`${provingTime / 1000} s`);
         setProof(JSON.stringify(proof));
@@ -87,29 +90,48 @@ export default function Prove(props: any) {
                 <h2 className="fix text-2xl font-bold mb-4">{props.circuit}</h2>
                 <button
                     disabled={proving}
-                    className="btn mr-4 text-slate-200 p-1 pl-3 pr-3 rounded-lg bg-[#0062c1] hover:bg-[#319aff] disabled:bg-[#319aff] disabled:cursor-not-allowed shadow-md"
+                    className="display: inline-block btn mr-4 text-slate-200 p-1 pl-3 pr-3 rounded-lg bg-[#FF8946] hover:bg-[#FFB546] disabled:bg-[#a0a0a0] disabled:cursor-not-allowed shadow-md"
                     onClick={generateProof}
                 >
                     Prove
                 </button>
+                <button
+                    className="display: inline-block btn mr-4 text-slate-800 p-1 pl-3 pr-3 rounded-lg hover:bg-[#FFB546] disabled:bg-[#a0a0a0] disabled:cursor-not-allowed shadow-md"
+                    onClick={toggle}
+                >
+                    Show Proof
+                </button>
+                {/*The bottom code should toggle on and off when the button is pressed*/}
+                <div
+                    style={{
+                        display: output ? "block" : "none",
+                    }}
+                >
+                    {proof && publicSignals && (
+                        <div className=" dark:bg-blue-950 p-5 rounded-md shadow-md">
+                            {proof && (
+                                <h3 className="text-1xl font-bold">proof</h3>
+                            )}
+                            <p className="mt-1 break-all ">{proof}</p>
+                            {publicSignals && (
+                                <h3 className="text-1xl font-bold">
+                                    public signals
+                                </h3>
+                            )}
+                            <p className="mt-1 break-all ">{publicSignals}</p>
+                        </div>
+                    )}
+                </div>
                 {/* <button className="btn">Verify</button> */}
                 {witGenTime && (
-                    <p className="mt-2">Witness Generation time: {witGenTime}</p>
+                    <p className="mt-2">
+                        Witness Generation time: {witGenTime}
+                    </p>
                 )}
                 {provingTime && (
                     <p className="mt-2">Proving time: {provingTime}</p>
                 )}
             </div>
-            {proof && publicSignals && (
-                <div className="bg-sky-200 dark:bg-blue-950 p-5 rounded-md shadow-md">
-                    {proof && <h3 className="text-1xl font-bold">proof</h3>}
-                    <p className="mt-1 break-all ">{proof}</p>
-                    {publicSignals && (
-                        <h3 className="text-1xl font-bold">public signals</h3>
-                    )}
-                    <p className="mt-1 break-all ">{publicSignals}</p>
-                </div>
-            )}
         </div>
     );
 }
