@@ -19,6 +19,8 @@ export default function Home() {
                 <Prove circuit="keccak256"></Prove>
                 <Prove circuit="sha256"></Prove>
                 <Prove circuit="RSA"></Prove>
+                <Prove circuit="semaphore"></Prove>
+                <Prove circuit="Aadhaar"></Prove>
                 <div className="p-20"></div>
             </main>
             <Footer></Footer>

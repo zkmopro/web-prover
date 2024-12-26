@@ -5,18 +5,22 @@ import Inputs from "./inputs.json";
 
 const url = "https://ci-keys.zkmopro.org";
 
-async function getKeys(circuit: string) {
-    const wasmUrl = new URL(`${circuit}.wasm`, url).toString();
-    const zkeyUrl = new URL(`${circuit}_final.zkey`, url).toString();
+async function getKeys(wasmPath: string, zkeyPath: string) {
+    const wasmUrl = new URL(wasmPath, url).toString();
+    const zkeyUrl = new URL(zkeyPath, url).toString();
     const wasm = await fetch(wasmUrl).then((r) => r.arrayBuffer());
     const zkey = await fetch(zkeyUrl).then((r) => r.arrayBuffer());
     return { wasm, zkey };
 }
 
-async function fullProve(circuit: string, inputs: CircuitSignals) {
+async function fullProve(
+    wasmPath: string,
+    zkeyPath: string,
+    inputs: CircuitSignals
+) {
     const _snarkjs = import("snarkjs");
     const snarkjs = await _snarkjs;
-    const { wasm, zkey } = await getKeys(circuit);
+    const { wasm, zkey } = await getKeys(wasmPath, zkeyPath);
     const wtns = {
         type: "mem",
     };
@@ -66,7 +70,7 @@ export default function Prove(props: any) {
     const [proof, setProof] = useState<string>();
     const [publicSignals, setPublicSignals] = useState<string>("");
     const [output, setOutput] = useState<boolean>(false);
-    const { file, inputs } = Inputs[props.circuit as keyof typeof Inputs];
+    const { wasm, zkey, inputs } = Inputs[props.circuit as keyof typeof Inputs];
 
     function toggle() {
         setOutput(!output);
@@ -76,7 +80,7 @@ export default function Prove(props: any) {
         setProving(true);
         setProvingTime("Calculating...");
         const { proof, publicSignals, witGenTime, provingTime } =
-            await fullProve(file, inputs);
+            await fullProve(wasm, zkey, inputs);
         setWitGenTime(`${witGenTime / 1000} s`);
         setProvingTime(`${provingTime / 1000} s`);
         setProof(JSON.stringify(proof));
